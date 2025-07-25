@@ -1,86 +1,122 @@
-function demo_efr()
-% DEMO_EFR Simple demonstration of EFR composite quantile regression
-%
-% This script provides a basic example of how to use the EFR method
-% for composite quantile regression on simulated data.
-
+function demo_cqr_methods()
     clc; clear; close all;
-    fprintf('=== EFR Composite Quantile Regression Demo ===\n\n');
+    fprintf('=== CQR Methods Comparison ===\n\n');
     
-    %% Basic setup
-    n = 200;        % Sample size
-    p = 100;        % Number of variables
-    tau = 0.7 * ones(1, 5);  % Multiple quantile levels
+    n = 200;
+    p = 100;
+    tau = 0.7 * ones(1, 5);
     
-    % Generate true sparse coefficient
-    beta_true = generate_true_beta(p);
+    beta_true = genTrueBeta(p);
     true_set = find(beta_true ~= 0);
     fprintf('True sparsity: %d/%d nonzero coefficients\n', length(true_set), p);
     
-    % Generate data with Normal errors
     Mu = zeros(1, p);
-    Sig = 0.7.^abs((1:p)' - (1:p));  % AR(1) covariance structure
+    Sig = 0.7.^abs((1:p)' - (1:p));
     [X, Y] = generate_data(n, Mu, Sig, beta_true, 'Normal');
-    X = standardize_matrix(X);
+    X = standardizeMatrix(X);
     
     fprintf('Data generated: n=%d, p=%d\n\n', n, p);
     
-    %% Compare different sigma values for EFR
-    sigma_values = [0.2, 0.5, 1.0, 2.0];
-    
-    fprintf('EFR Method Comparison (different sigma values):\n');
-    fprintf('%-8s %8s %8s %8s %8s %8s %8s\n', 'Sigma', 'L1', 'L2', 'PE', 'FDP', 'TPP', 'Time(s)');
+    fprintf('Method Comparison:\n');
+    fprintf('%-8s %8s %8s %8s %8s %8s %8s\n', 'Method', 'L1', 'L2', 'PE', 'FDP', 'TPP', 'Time(s)');
     fprintf(repmat('-', 1, 65)); fprintf('\n');
+    
+    % L1 method
+    tic;
+    result_l1 = cqr_l1(X, Y, tau, 2.5 * quantile(cqr_self_tuning(n, repmat(X', 1, length(tau)), tau), 0.95), n);
+    time_l1 = toc;
+    metrics_l1 = computeMetrics(result_l1.beta, beta_true, Sig, true_set);
+    selected_l1 = find(result_l1.beta ~= 0);
+    fprintf('%-8s %8.3f %8.3f %8.3f %8.3f %8.3f %8.2f\n', ...
+            'L1', metrics_l1.l1, metrics_l1.l2, metrics_l1.PE, ...
+            metrics_l1.FDP, metrics_l1.TPP, time_l1);
+    
+    % SCAD method
+    tic;
+    result_scad = cqr_irw(X, Y, tau, n, 'SCAD');
+    time_scad = toc;
+    metrics_scad = computeMetrics(result_scad.beta, beta_true, Sig, true_set);
+    selected_scad = find(result_scad.beta ~= 0);
+    fprintf('%-8s %8.3f %8.3f %8.3f %8.3f %8.3f %8.2f\n', ...
+            'SCAD', metrics_scad.l1, metrics_scad.l2, metrics_scad.PE, ...
+            metrics_scad.FDP, metrics_scad.TPP, time_scad);
+    
+    % MCP method
+    tic;
+    result_mcp = cqr_irw(X, Y, tau, n, 'MCP');
+    time_mcp = toc;
+    metrics_mcp = computeMetrics(result_mcp.beta, beta_true, Sig, true_set);
+    selected_mcp = find(result_mcp.beta ~= 0);
+    fprintf('%-8s %8.3f %8.3f %8.3f %8.3f %8.3f %8.2f\n', ...
+            'MCP', metrics_mcp.l1, metrics_mcp.l2, metrics_mcp.PE, ...
+            metrics_mcp.FDP, metrics_mcp.TPP, time_mcp);
+    
+    % EFR method
+    sigma = 1.0;
+    tic;
+    result_efr = cqr_irw_EFR(X, Y, tau, sigma);
+    time_efr = toc;
+    metrics_efr = computeMetrics(result_efr.beta, beta_true, Sig, true_set);
+    selected_efr = find(result_efr.beta ~= 0);
+    fprintf('%-8s %8.3f %8.3f %8.3f %8.3f %8.3f %8.2f\n', ...
+            'EFR', metrics_efr.l1, metrics_efr.l2, metrics_efr.PE, ...
+            metrics_efr.FDP, metrics_efr.TPP, time_efr);
+    
+    % EFR different sigma values
+    fprintf('\nEFR with different sigma values:\n');
+    sigma_values = [0.2, 0.5, 1.0, 2.0];
+    fprintf('%-8s %8s %8s %8s %8s %8s\n', 'Sigma', 'L1', 'L2', 'PE', 'FDP', 'TPP');
+    fprintf(repmat('-', 1, 55)); fprintf('\n');
     
     for i = 1:length(sigma_values)
         sigma = sigma_values(i);
-        
-        % Fit EFR model
-        tic;
         result = cqr_irw_EFR(X, Y, tau, sigma);
-        elapsed_time = toc;
-        
-        % Compute metrics
-        metrics = compute_metrics(result.beta, beta_true, Sig, true_set);
-        
-        % Count selected variables
-        selected = find(result.beta ~= 0);
-        
-        % Display results
-        fprintf('%-8.1f %8.3f %8.3f %8.3f %8.3f %8.3f %8.2f\n', ...
+        metrics = computeMetrics(result.beta, beta_true, Sig, true_set);
+        fprintf('%-8.1f %8.3f %8.3f %8.3f %8.3f %8.3f\n', ...
                 sigma, metrics.l1, metrics.l2, metrics.PE, ...
-                metrics.FDP, metrics.TPP, elapsed_time);
-        
-        if i == 1
-            fprintf('         (Selected: %d variables, %d iterations)\n', ...
-                    length(selected), result.niter);
-        end
+                metrics.FDP, metrics.TPP);
     end
     
-    %% Demonstrate effect of sigma parameter
-    fprintf('\n--- Effect of sigma parameter ---\n');
-    fprintf('Smaller sigma (e.g., 0.2): More aggressive penalty, sparser solutions\n');
-    fprintf('Larger sigma (e.g., 2.0): Milder penalty, less sparse solutions\n');
-    
-    % Show coefficient patterns for extreme sigma values
-    result_small = cqr_irw_EFR(X, Y, tau, 0.2);
-    result_large = cqr_irw_EFR(X, Y, tau, 2.0);
-    
     fprintf('\nSelected variables:\n');
-    fprintf('True nonzeros: '); fprintf('%d ', true_set(1:min(10, end))); 
+    fprintf('True:    '); fprintf('%d ', true_set(1:min(10, end))); 
     if length(true_set) > 10, fprintf('...'); end
     fprintf('\n');
     
-    selected_small = find(result_small.beta ~= 0);
-    fprintf('Sigma=0.2:     '); fprintf('%d ', selected_small(1:min(10, end)));
-    if length(selected_small) > 10, fprintf('...'); end
-    fprintf(' (%d total)\n', length(selected_small));
+    fprintf('L1:      '); fprintf('%d ', selected_l1(1:min(10, end)));
+    if length(selected_l1) > 10, fprintf('...'); end
+    fprintf(' (%d total)\n', length(selected_l1));
     
-    selected_large = find(result_large.beta ~= 0);
-    fprintf('Sigma=2.0:     '); fprintf('%d ', selected_large(1:min(10, end)));
-    if length(selected_large) > 10, fprintf('...'); end
-    fprintf(' (%d total)\n', length(selected_large));
+    fprintf('SCAD:    '); fprintf('%d ', selected_scad(1:min(10, end)));
+    if length(selected_scad) > 10, fprintf('...'); end
+    fprintf(' (%d total)\n', length(selected_scad));
     
-    fprintf('\nDemo completed successfully!\n');
-    fprintf('Run cqr_efr_main() for comprehensive simulation study.\n');
+    fprintf('MCP:     '); fprintf('%d ', selected_mcp(1:min(10, end)));
+    if length(selected_mcp) > 10, fprintf('...'); end
+    fprintf(' (%d total)\n', length(selected_mcp));
+    
+    fprintf('EFR:     '); fprintf('%d ', selected_efr(1:min(10, end)));
+    if length(selected_efr) > 10, fprintf('...'); end
+    fprintf(' (%d total)\n', length(selected_efr));
+    
+    fprintf('\nDemo completed.\n');
+end
+
+function [X, Y] = generate_data(n, Mu, Sig, beta_true, dist_type)
+    X = mvnrnd(Mu, Sig, n);
+    
+    switch lower(dist_type)
+        case 'normal'
+            de = randn(n, 1);
+        case 'mixture'
+            mix_flag = (rand(n, 1) < 0.9);
+            de = mix_flag .* randn(n, 1) + (~mix_flag) .* (10 * randn(n, 1));
+        case 't3'
+            de = trnd(3, n, 1);
+        case 'cauchy'
+            de = tan(pi * (rand(n, 1) - 0.5));
+        otherwise
+            error('Unknown distribution type: %s', dist_type);
+    end
+    
+    Y = X * beta_true' + de;
 end
