@@ -5,15 +5,15 @@ MATLAB code for hdsqr with L1, SCAD, MCP, and EFR penalties.
 - `hdsqr_algorithms.m` - Main algorithms for all methods
 - `utility_functions.m` - Helper functions
 - `demo_example.m` - Demo comparing all methods
-- `hdsqr_algorithms.m` - Full simulation study
+- `main_experiment.m` - Full simulation study
 
 ## Usage
 
 ### Quick start
 
 ```matlab
-demo_hdsqr_methods()          % Compare all methods
-hdsqr_main_experiment()       % Full simulation
+hdsqr_algorithms()         % Compare all methods
+main_experiment()       % Full simulation
 ```
 
 ### Basic example
