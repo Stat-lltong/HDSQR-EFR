@@ -1,5 +1,4 @@
 function result = hdsqr_irw_EFR(X, Y, tau, sigma)
-% hdsqr_IRW_EFR Composite quantile regression with EFR penalty
     [n, p] = size(X); 
     mX = mean(X, 1);
     phi = 0.1;
