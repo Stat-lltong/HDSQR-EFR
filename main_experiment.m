@@ -1,4 +1,4 @@
-function cqr_main_experiment()
+function hdsqr_main_experiment()
     clc; clear; close all; warning('off');
     
     n = 500;
@@ -67,8 +67,8 @@ function results = run_simulation_l1(n, p, M, K, tau, Mu, Sig, beta_true, true_s
         [X, Y] = generate_data(n, Mu, Sig, beta_true, dist_type);
         X = standardizeMatrix(X);
         
-        Lambda = 2.5 * quantile(cqr_self_tuning(n, repmat(X', 1, K), tau), 0.95);
-        result_est = cqr_l1(X, Y, tau, Lambda, n);
+        Lambda = 2.5 * quantile(hdsqr_self_tuning(n, repmat(X', 1, K), tau), 0.95);
+        result_est = hdsqr_l1(X, Y, tau, Lambda, n);
         
         metrics = computeMetrics(result_est.beta, beta_true, Sig, true_set);
         results.l1(rep) = metrics.l1;
@@ -91,7 +91,7 @@ function results = run_simulation_irw(n, p, M, K, tau, Mu, Sig, beta_true, true_
         [X, Y] = generate_data(n, Mu, Sig, beta_true, dist_type);
         X = standardizeMatrix(X);
         
-        result_est = cqr_irw(X, Y, tau, n, penalty_type);
+        result_est = hdsqr_irw(X, Y, tau, n, penalty_type);
         
         metrics = computeMetrics(result_est.beta, beta_true, Sig, true_set);
         results.l1(rep) = metrics.l1;
@@ -114,7 +114,7 @@ function results = run_simulation_efr(n, p, M, K, tau, sigma, Mu, Sig, beta_true
         [X, Y] = generate_data(n, Mu, Sig, beta_true, dist_type);
         X = standardizeMatrix(X);
         
-        result_est = cqr_irw_EFR(X, Y, tau, sigma);
+        result_est = hdsqr_irw_EFR(X, Y, tau, sigma);
         
         metrics = computeMetrics(result_est.beta, beta_true, Sig, true_set);
         results.l1(rep) = metrics.l1;
@@ -156,7 +156,7 @@ function save_results(results, p, dist_type, method, param)
     results_table = array2table(data_table, 'VariableNames', col_names, ...
                                'RowNames', {row_name});
     
-    filename = 'cqr_results.xlsx';
+    filename = 'hdsqr_results.xlsx';
     sheet_name = sprintf('p%d_%s', p, dist_type);
     writetable(results_table, filename, 'Sheet', sheet_name, 'WriteRowNames', true);
 end
