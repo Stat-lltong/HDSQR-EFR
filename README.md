@@ -1,67 +1,55 @@
-# HDSQR-EFR
-
-MATLAB code for HDSQR with EFR penalty.
-
-_AN ITERATIVE REWEIGHTED ALGORITHM FOR HIGH DIMENSIONAL SPARSE QUANTILE REGRESSION WITH ERROR FUNCTION REGULARIZATION_
+MATLAB code for composite quantile regression with L1, SCAD, MCP, and EFR penalties.
 
 ## Files
 
-- `cqr_efr_main.m` - Main simulation
-- `demo_efr.m` - Simple example
-- `cqr_efr_algorithm.m` - EFR algorithm  
-- `cqr_efr_utils.m` - Helper functions
+- `enhanced_cqr_algorithms.m` - Main algorithms for all methods
+- `enhanced_utility_functions.m` - Helper functions
+- `demo_cqr_methods.m` - Demo comparing all methods
+- `cqr_main_experiment.m` - Full simulation study
 
 ## Usage
 
 ### Quick start
+
 ```matlab
-demo_efr()              % Simple example
-cqr_efr_main()          % Full simulation
+demo_cqr_methods()          % Compare all methods
+cqr_main_experiment()       % Full simulation
 ```
 
 ### Basic example
+
 ```matlab
 % Generate data
 n = 100; p = 50;
 X = randn(n, p);
 beta_true = [2; -1; 1; zeros(p-3, 1)];
 Y = X * beta_true + randn(n, 1);
+X = standardizeMatrix(X);
 
-% Standardize X
-X = standardize_matrix(X);
-
-% Run EFR
+% Run methods
 tau = [0.25, 0.5, 0.75];
-sigma = 1.0;
-result = cqr_irw_EFR(X, Y, tau, sigma);
-
-% Get coefficients
-beta_hat = result.beta;
+result_l1 = cqr_l1(X, Y, tau, 2.5, n);
+result_scad = cqr_irw(X, Y, tau, n, 'SCAD');
+result_mcp = cqr_irw(X, Y, tau, n, 'MCP');
+result_efr = cqr_irw_EFR(X, Y, tau, 1.0);
 ```
 
-## Method
+## Methods
 
-EFR uses penalty weights: `exp(-(beta/sigma)^2)`
+- **L1**: Standard LASSO penalty
+- **SCAD**: Smoothly clipped absolute deviation
+- **MCP**: Minimax concave penalty  
+- **EFR**: Exponential family regularization, `exp(-(beta/sigma)^2)`
 
-- Small sigma → more sparse
-- Large sigma → less sparse
+## Parameters
 
-## Settings
-
-Default simulation uses:
-- n = 500
-- p = 400, 1000  
-- Error types: Normal, Mixture, t(3), Cauchy
-- sigma = 0.2, 1.0
+- EFR sigma: 0.2 (sparse) to 2.0 (less sparse)
+- Default: sigma = 1.0
 
 ## Output
 
-Results saved to `efr_results.xlsx`
+Results saved to `cqr_results.xlsx`
 
 ## Requirements
 
 MATLAB with Statistics Toolbox
-
-## Notes
-
-Simple implementation for research use.
