@@ -1,5 +1,5 @@
-function result = cqr_irw_EFR(X, Y, tau, sigma)
-% CQR_IRW_EFR Composite quantile regression with EFR penalty
+function result = hdsqr_irw_EFR(X, Y, tau, sigma)
+% hdsqr_IRW_EFR Composite quantile regression with EFR penalty
     [n, p] = size(X); 
     mX = mean(X, 1);
     phi = 0.1;
@@ -12,8 +12,8 @@ function result = cqr_irw_EFR(X, Y, tau, sigma)
     K = length(tau);
     m_tau = mean(tau);
     XX = repmat(X', 1, K);
-    Lambda = lambdaparameter * quantile(cqr_self_tuning(n, XX, tau), 0.95);
-    h = cqr_bandwidth(mX, n, m_tau);
+    Lambda = lambdaparameter * quantile(hdsqr_self_tuning(n, XX, tau), 0.95);
+    h = hdsqr_bandwidth(mX, n, m_tau);
     beta0 = zeros(1,p);
     count = 0;
     alphaa0 = zeros(1, K);
@@ -30,9 +30,9 @@ function result = cqr_irw_EFR(X, Y, tau, sigma)
     res = Y - X * beta0';
 
     while r0 > tol * (sum(beta0.^2) + sum(alphaa0.^2)) && count < max_iter
-        gradalpha0 = alphaX * cqr_conquer_weight(res, alphaa0, tau, h, []);
-        gradbeta0 = XX * cqr_conquer_weight(res, alphaa0, tau, h, []);
-        loss_eval0 = cqr_smooth_check(res, alphaa0, tau, h, []);
+        gradalpha0 = alphaX * hdsqr_conquer_weight(res, alphaa0, tau, h, []);
+        gradbeta0 = XX * hdsqr_conquer_weight(res, alphaa0, tau, h, []);
+        loss_eval0 = hdsqr_smooth_check(res, alphaa0, tau, h, []);
 
         alpha1 = alphaa0 - gradalpha0' / phi;
         beta1 = beta0 - gradbeta0' / phi;
@@ -45,7 +45,7 @@ function result = cqr_irw_EFR(X, Y, tau, sigma)
         res = Y - X * beta1';
 
         loss_proxy = loss_eval0 + dot(diff_beta, gradbeta0) + dot(diff_alpha, gradalpha0) + 0.5 * phi * r0;
-        loss_eval1 = cqr_smooth_check(res, alpha1, tau, h, []);
+        loss_eval1 = hdsqr_smooth_check(res, alpha1, tau, h, []);
 
         while loss_proxy < loss_eval1
             phi = phi * gammma1;
@@ -58,7 +58,7 @@ function result = cqr_irw_EFR(X, Y, tau, sigma)
             r0 = diff_beta * diff_beta' + diff_alpha * diff_alpha';
             res = Y - X * beta1';
             loss_proxy = loss_eval0 + diff_beta * gradbeta0 + diff_alpha * gradalpha0 + 0.5 * phi * r0;
-            loss_eval1 = cqr_smooth_check(res, alpha1, tau, h, []);
+            loss_eval1 = hdsqr_smooth_check(res, alpha1, tau, h, []);
         end
 
         alphaa0 = alpha1;
@@ -69,15 +69,15 @@ function result = cqr_irw_EFR(X, Y, tau, sigma)
     result = struct('alpha', alpha1, 'beta', beta1, 'res', res, 'niter', count, 'lambda', Lambda, 'h', h);
 end
 
-function result = cqr_irw(X, Y, tau, n, penaltyType)
+function result = hdsqr_irw(X, Y, tau, n, penaltyType)
     irw_tol = 1e-6;
     nstep = 5;
     lambdaparameter = 1.6;
     
     K = length(tau);
     XX = repmat(X', 1, K);
-    Lambda = lambdaparameter * quantile(cqr_self_tuning(n, XX, tau), 0.95);
-    model = cqr_l1(X, Y, tau, Lambda, n);
+    Lambda = lambdaparameter * quantile(hdsqr_self_tuning(n, XX, tau), 0.95);
+    model = hdsqr_l1(X, Y, tau, Lambda, n);
     alpha0 = model.alpha;
     beta0 = model.beta;
     res = model.res;
@@ -86,7 +86,7 @@ function result = cqr_irw(X, Y, tau, n, penaltyType)
     
     while err > irw_tol && count <= nstep
         rw_lambda = concave_weight(beta0 / Lambda, Lambda, penaltyType);
-        model = cqr_l1(X, Y, tau, rw_lambda, n);
+        model = hdsqr_l1(X, Y, tau, rw_lambda, n);
         err = (sum((model.beta - beta0).^2) + sum((model.alpha - alpha0).^2)) / (sum(beta0.^2) + sum(alpha0.^2));
         alpha0 = model.alpha;
         beta0 = model.beta;
@@ -97,7 +97,7 @@ function result = cqr_irw(X, Y, tau, n, penaltyType)
     result = struct('alpha', model.alpha, 'beta', model.beta, 'res', model.res, 'niter', count, 'lambda', Lambda);
 end
 
-function result = cqr_l1(X, Y, tau, Lambda, ~)
+function result = hdsqr_l1(X, Y, tau, Lambda, ~)
     [n, p] = size(X);
     mX = mean(X, 1);
     phi = 0.1;
@@ -109,7 +109,7 @@ function result = cqr_l1(X, Y, tau, Lambda, ~)
     K = length(tau);
     m_tau = mean(tau);
     XX = repmat(X', 1, K);
-    h = cqr_bandwidth(mX, n, m_tau);
+    h = hdsqr_bandwidth(mX, n, m_tau);
     beta0 = zeros(1,p);
     count = 0;
     alphaa0 = zeros(1, K);
@@ -126,9 +126,9 @@ function result = cqr_l1(X, Y, tau, Lambda, ~)
     res = Y - X * beta0';
 
     while r0 > tol * (sum(beta0.^2) + sum(alphaa0.^2)) && count < max_iter
-        gradalpha0 = alphaX * cqr_conquer_weight(res, alphaa0, tau, h, []);
-        gradbeta0 = XX * cqr_conquer_weight(res, alphaa0, tau, h, []);
-        loss_eval0 = cqr_smooth_check(res, alphaa0, tau, h, []);
+        gradalpha0 = alphaX * hdsqr_conquer_weight(res, alphaa0, tau, h, []);
+        gradbeta0 = XX * hdsqr_conquer_weight(res, alphaa0, tau, h, []);
+        loss_eval0 = hdsqr_smooth_check(res, alphaa0, tau, h, []);
 
         alpha1 = alphaa0 - gradalpha0' / phi;
         beta1 = beta0 - gradbeta0' / phi;
@@ -140,7 +140,7 @@ function result = cqr_l1(X, Y, tau, Lambda, ~)
         res = Y - X * beta1';
 
         loss_proxy = loss_eval0 + dot(diff_beta, gradbeta0) + dot(diff_alpha, gradalpha0) + 0.5 * phi * r0;
-        loss_eval1 = cqr_smooth_check(res, alpha1, tau, h, []);
+        loss_eval1 = hdsqr_smooth_check(res, alpha1, tau, h, []);
 
         while loss_proxy < loss_eval1
             phi = phi * gammma1;
@@ -152,7 +152,7 @@ function result = cqr_l1(X, Y, tau, Lambda, ~)
             r0 = diff_beta * diff_beta' + diff_alpha * diff_alpha';
             res = Y - X * beta1';
             loss_proxy = loss_eval0 + diff_beta * gradbeta0 + diff_alpha * gradalpha0 + 0.5 * phi * r0;
-            loss_eval1 = cqr_smooth_check(res, alpha1, tau, h, []);
+            loss_eval1 = hdsqr_smooth_check(res, alpha1, tau, h, []);
         end
 
         alphaa0 = alpha1;
