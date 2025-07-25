@@ -1,19 +1,19 @@
-MATLAB code for composite quantile regression with L1, SCAD, MCP, and EFR penalties.
+MATLAB code for hdsqr with L1, SCAD, MCP, and EFR penalties.
 
 ## Files
 
-- `enhanced_cqr_algorithms.m` - Main algorithms for all methods
+- `enhanced_hdsqr_algorithms.m` - Main algorithms for all methods
 - `enhanced_utility_functions.m` - Helper functions
-- `demo_cqr_methods.m` - Demo comparing all methods
-- `cqr_main_experiment.m` - Full simulation study
+- `demo_hdsqr_methods.m` - Demo comparing all methods
+- `hdsqr_main_experiment.m` - Full simulation study
 
 ## Usage
 
 ### Quick start
 
 ```matlab
-demo_cqr_methods()          % Compare all methods
-cqr_main_experiment()       % Full simulation
+demo_hdsqr_methods()          % Compare all methods
+hdsqr_main_experiment()       % Full simulation
 ```
 
 ### Basic example
@@ -28,10 +28,10 @@ X = standardizeMatrix(X);
 
 % Run methods
 tau = [0.25, 0.5, 0.75];
-result_l1 = cqr_l1(X, Y, tau, 2.5, n);
-result_scad = cqr_irw(X, Y, tau, n, 'SCAD');
-result_mcp = cqr_irw(X, Y, tau, n, 'MCP');
-result_efr = cqr_irw_EFR(X, Y, tau, 1.0);
+result_l1 = hdsqr_l1(X, Y, tau, 2.5, n);
+result_scad = hdsqr_irw(X, Y, tau, n, 'SCAD');
+result_mcp = hdsqr_irw(X, Y, tau, n, 'MCP');
+result_efr = hdsqr_irw_EFR(X, Y, tau, 1.0);
 ```
 
 ## Methods
@@ -48,7 +48,7 @@ result_efr = cqr_irw_EFR(X, Y, tau, 1.0);
 
 ## Output
 
-Results saved to `cqr_results.xlsx`
+Results saved to `hdsqr_results.xlsx`
 
 ## Requirements
 
