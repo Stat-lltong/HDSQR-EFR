@@ -1,6 +1,6 @@
-function demo_cqr_methods()
+function demo_hdsqr_methods()
     clc; clear; close all;
-    fprintf('=== CQR Methods Comparison ===\n\n');
+    fprintf('=== hdsqr Methods Comparison ===\n\n');
     
     n = 200;
     p = 100;
@@ -23,7 +23,7 @@ function demo_cqr_methods()
     
     % L1 method
     tic;
-    result_l1 = cqr_l1(X, Y, tau, 2.5 * quantile(cqr_self_tuning(n, repmat(X', 1, length(tau)), tau), 0.95), n);
+    result_l1 = hdsqr_l1(X, Y, tau, 2.5 * quantile(hdsqr_self_tuning(n, repmat(X', 1, length(tau)), tau), 0.95), n);
     time_l1 = toc;
     metrics_l1 = computeMetrics(result_l1.beta, beta_true, Sig, true_set);
     selected_l1 = find(result_l1.beta ~= 0);
@@ -33,7 +33,7 @@ function demo_cqr_methods()
     
     % SCAD method
     tic;
-    result_scad = cqr_irw(X, Y, tau, n, 'SCAD');
+    result_scad = hdsqr_irw(X, Y, tau, n, 'SCAD');
     time_scad = toc;
     metrics_scad = computeMetrics(result_scad.beta, beta_true, Sig, true_set);
     selected_scad = find(result_scad.beta ~= 0);
@@ -43,7 +43,7 @@ function demo_cqr_methods()
     
     % MCP method
     tic;
-    result_mcp = cqr_irw(X, Y, tau, n, 'MCP');
+    result_mcp = hdsqr_irw(X, Y, tau, n, 'MCP');
     time_mcp = toc;
     metrics_mcp = computeMetrics(result_mcp.beta, beta_true, Sig, true_set);
     selected_mcp = find(result_mcp.beta ~= 0);
@@ -54,7 +54,7 @@ function demo_cqr_methods()
     % EFR method
     sigma = 1.0;
     tic;
-    result_efr = cqr_irw_EFR(X, Y, tau, sigma);
+    result_efr = hdsqr_irw_EFR(X, Y, tau, sigma);
     time_efr = toc;
     metrics_efr = computeMetrics(result_efr.beta, beta_true, Sig, true_set);
     selected_efr = find(result_efr.beta ~= 0);
@@ -70,7 +70,7 @@ function demo_cqr_methods()
     
     for i = 1:length(sigma_values)
         sigma = sigma_values(i);
-        result = cqr_irw_EFR(X, Y, tau, sigma);
+        result = hdsqr_irw_EFR(X, Y, tau, sigma);
         metrics = computeMetrics(result.beta, beta_true, Sig, true_set);
         fprintf('%-8.1f %8.3f %8.3f %8.3f %8.3f %8.3f\n', ...
                 sigma, metrics.l1, metrics.l2, metrics.PE, ...
