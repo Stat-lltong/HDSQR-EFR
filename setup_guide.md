@@ -14,7 +14,7 @@
 demo_efr()
 
 % Full experiment  
-cqr_efr_main()
+hdsqr_efr_main()
 ```
 
 ### Your own data
@@ -27,14 +27,14 @@ tau = 0.5;      % Single quantile
 sigma = 1.0;    % EFR parameter
 
 % Run
-result = cqr_irw_EFR(X, Y, tau, sigma);
+result = hdsqr_irw_EFR(X, Y, tau, sigma);
 beta_hat = result.beta;
 ```
 
 ### Try different sigma
 ```matlab
 for sigma = [0.2, 0.5, 1.0, 2.0]
-    result = cqr_irw_EFR(X, Y, tau, sigma);
+    result = hdsqr_irw_EFR(X, Y, tau, sigma);
     sparsity = sum(result.beta ~= 0);
     fprintf('sigma=%.1f: %d variables\n', sigma, sparsity);
 end
