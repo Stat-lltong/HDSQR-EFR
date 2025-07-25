@@ -2,8 +2,8 @@ function demo_hdsqr_methods()
     clc; clear; close all;
     fprintf('=== hdsqr Methods Comparison ===\n\n');
     
-    n = 200;
-    p = 100;
+    n = 400;
+    p = 500;
     tau = 0.7 * ones(1, 5);
     
     beta_true = genTrueBeta(p);
@@ -52,7 +52,7 @@ function demo_hdsqr_methods()
             metrics_mcp.FDP, metrics_mcp.TPP, time_mcp);
     
     % EFR method
-    sigma = 1.0;
+    sigma = 0.2;
     tic;
     result_efr = hdsqr_irw_EFR(X, Y, tau, sigma);
     time_efr = toc;
