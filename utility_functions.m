@@ -1,37 +1,37 @@
-function cqr_lambda_sim = cqr_self_tuning(n, XX, tau)
+function hdsqr_lambda_sim = hdsqr_self_tuning(n, XX, tau)
     nsim = 200;
-    cqr_lambda_sim = zeros(1, nsim);
+    hdsqr_lambda_sim = zeros(1, nsim);
     
     for b = 1:nsim
-        cqr_lambda_sim(b) = max(abs(XX * cqr_conquer_lambdasim(n, tau)));
+        hdsqr_lambda_sim(b) = max(abs(XX * hdsqr_conquer_lambdasim(n, tau)));
     end
     
-    cqr_lambda_sim = 2 * cqr_lambda_sim;
+    hdsqr_lambda_sim = 2 * hdsqr_lambda_sim;
 end
 
-function cqr_lambda = cqr_conquer_lambdasim(n, tau)
-    cqr_lambda = (rand(n, 1) <= tau(1)) - tau(1);
+function hdsqr_lambda = hdsqr_conquer_lambdasim(n, tau)
+    hdsqr_lambda = (rand(n, 1) <= tau(1)) - tau(1);
     
     for i = 2:length(tau)
-        cqr_lambda = [cqr_lambda; (rand(n, 1) <= tau(i)) - tau(i)];
+        hdsqr_lambda = [hdsqr_lambda; (rand(n, 1) <= tau(i)) - tau(i)];
     end
     
-    cqr_lambda = cqr_lambda / (length(tau) * n);
+    hdsqr_lambda = hdsqr_lambda / (length(tau) * n);
 end
 
-function h = cqr_bandwidth(mX, n, tau)
+function h = hdsqr_bandwidth(mX, n, tau)
     h0 = (log(length(mX)) / n) ^ 0.25;
     h = max(0.05, (h0 * sqrt(tau - tau^2))^0.5);
 end
 
-function cqr_cw = cqr_conquer_weight(x, alpha, tau, h, w)
-    cqr_cw = conquer_weight((alpha(1) - x) / h, tau(1), w);
+function hdsqr_cw = hdsqr_conquer_weight(x, alpha, tau, h, w)
+    hdsqr_cw = conquer_weight((alpha(1) - x) / h, tau(1), w);
     
     for i = 2:length(tau)
-        cqr_cw = [cqr_cw; conquer_weight((alpha(i) - x) / h, tau(i), w)];
+        hdsqr_cw = [hdsqr_cw; conquer_weight((alpha(i) - x) / h, tau(i), w)];
     end
     
-    cqr_cw = cqr_cw / length(tau);
+    hdsqr_cw = hdsqr_cw / length(tau);
 end
 
 function result = conquer_weight(x, tau, w)
@@ -44,14 +44,14 @@ function result = conquer_weight(x, tau, w)
     end
 end
 
-function cqrsc_mean = cqr_smooth_check(x, alpha, tau, h, w)
-    cqrsc = zeros(1, length(tau));
+function hdsqrsc_mean = hdsqr_smooth_check(x, alpha, tau, h, w)
+    hdsqrsc = zeros(1, length(tau));
     
     for i = 1:length(tau)
-        cqrsc(i) = smooth_check(x - alpha(i), tau(i), h, w);
+        hdsqrsc(i) = smooth_check(x - alpha(i), tau(i), h, w);
     end
     
-    cqrsc_mean = mean(cqrsc);
+    hdsqrsc_mean = mean(hdsqrsc);
 end
 
 function result = smooth_check(x, tau, h, w)
